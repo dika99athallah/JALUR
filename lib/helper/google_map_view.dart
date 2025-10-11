@@ -42,6 +42,7 @@ class JirMapView extends StatefulWidget {
     this.onMapCreated,
     this.enableMyLocation = false,
     this.autoFitBounds = true,
+    this.bottomControlsPadding = 32,
   });
 
   final ll.LatLng? initialLocation;
@@ -60,6 +61,7 @@ class JirMapView extends StatefulWidget {
   final void Function(GoogleMapController controller)? onMapCreated;
   final bool enableMyLocation;
   final bool autoFitBounds;
+  final double bottomControlsPadding;
 
   @override
   State<JirMapView> createState() => _JirMapViewState();
@@ -715,7 +717,7 @@ class _JirMapViewState extends State<JirMapView> with TickerProviderStateMixin {
         ),
         Positioned(
           right: 16,
-          bottom: 32,
+          bottom: widget.bottomControlsPadding,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

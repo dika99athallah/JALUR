@@ -9,6 +9,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:JIR/pages/home/report/controller/report_controller.dart';
 import 'package:JIR/pages/home/report/widget/report_card.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
@@ -228,6 +230,7 @@ class _ActivityPageState extends State<ActivityPage> {
               itemBuilder: (context, index) {
                 final report = Map<String, dynamic>.from(reports[index]);
                 final id = report['id']?.toString() ?? index.toString();
+                final documentPath = _resolveDocumentPath(report);
                 return Dismissible(
                   key: ValueKey('report_$id'),
                   direction: DismissDirection.endToStart,
@@ -253,6 +256,7 @@ class _ActivityPageState extends State<ActivityPage> {
                     imageUrl: report['imagePath'] ?? '',
                     dateTimeIso:
                         report['dateTime'] ?? DateTime.now().toIso8601String(),
+                    documentPath: documentPath,
                     onTap: () =>
                         Get.toNamed(AppRoutes.reportdetail, arguments: report),
                     onShowImage: () {
@@ -285,6 +289,7 @@ class _ActivityPageState extends State<ActivityPage> {
                         ),
                       );
                     },
+                    onOpenDocument: () => _openDocument(context, documentPath),
                   ),
                 );
               },
@@ -292,6 +297,51 @@ class _ActivityPageState extends State<ActivityPage> {
           );
         }),
       ),
+    );
+  }
+
+  String _resolveDocumentPath(Map<String, dynamic> source) {
+    final candidates = [
+      source['documentPath'],
+      source['document_path'],
+      source['documentUrl'],
+      source['document_url'],
+    ];
+    for (final candidate in candidates) {
+      final value = (candidate ?? '').toString();
+      if (value.isNotEmpty) return value;
+    }
+    return '';
+  }
+
+  Future<void> _openDocument(BuildContext context, String documentPath) async {
+    if (documentPath.isEmpty) return;
+
+    if (documentPath.startsWith('http')) {
+      final uri = Uri.tryParse(documentPath);
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak dapat membuka tautan dokumen.')),
+        );
+      }
+      return;
+    }
+
+    final file = resolveLocalFile(documentPath);
+    if (file != null) {
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka dokumen: ${result.message}')),
+        );
+      }
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Lampiran tidak ditemukan.')),
     );
   }
 }

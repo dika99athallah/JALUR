@@ -23,6 +23,20 @@ class MapMonitoring extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final savedDestination =
+        _routeController.destinationAddress.value.isNotEmpty
+            ? _routeController.destinationAddress.value
+            : _routeController.destinationLabel.value;
+
+    if (savedDestination.isNotEmpty &&
+        _searchController.text.trim() != savedDestination.trim() &&
+        !_searchFocusNode.hasFocus) {
+      _searchController.text = savedDestination;
+      _searchController.selection = TextSelection.collapsed(
+        offset: _searchController.text.length,
+      );
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -42,17 +56,17 @@ class MapMonitoring extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          _buildMap(),
+          _buildMap(context),
           _buildSearchSection(),
-          _buildFloatingButton(),
-          _buildFloodMonitoringButton(),
+          _buildFloodMonitoringButton(context),
           _buildOptimizedRouteInfo(),
+          _buildRouteSheet(),
         ],
       ),
     );
   }
 
-  Widget _buildMap() {
+  Widget _buildMap(BuildContext context) {
     return GetX<FloodController>(
       builder: (floodController) {
         if (floodController.isLoading.value) {
@@ -102,6 +116,16 @@ class MapMonitoring extends StatelessWidget {
             final List<RouteLineConfig> routeLines = [];
             const Color selectedRouteColor = Color(0xFF2563EB);
             const Color alternativeRouteColor = Color(0xFFF97316);
+
+            final hasRouteSheet = routeOptions.isNotEmpty ||
+                routeController.routeSteps.isNotEmpty ||
+                routeController.isLoading.value;
+            final media = MediaQuery.of(context);
+            final collapsedSheetHeight = hasRouteSheet
+                ? (media.size.height * 0.28) + media.padding.bottom + 24
+                : 0.0;
+            final bottomControlsPadding =
+                hasRouteSheet ? collapsedSheetHeight : 32.0;
 
             for (var i = 0; i < routeOptions.length; i++) {
               final option = routeOptions[i];
@@ -157,6 +181,7 @@ class MapMonitoring extends StatelessWidget {
                 showFeedback: true,
               ),
               enableMyLocation: true,
+              bottomControlsPadding: bottomControlsPadding,
             );
           },
         );
@@ -318,16 +343,17 @@ class MapMonitoring extends StatelessWidget {
 
   Widget _buildSuggestionItem(int index) {
     final suggestion = _routeController.searchSuggestions[index];
+    final distanceText = _getSuggestionDistanceText(suggestion);
 
     return ListTile(
       leading: const Icon(Icons.location_on, size: 20),
       title: Text(suggestion['display_name'] ?? 'Lokasi'),
-      subtitle: _buildSuggestionSubtitle(suggestion),
+      subtitle: _buildSuggestionSubtitle(suggestion, distanceText),
       onTap: () => _handleSuggestionTap(suggestion),
     );
   }
 
-  Widget _buildSuggestionSubtitle(dynamic suggestion) {
+  Widget _buildSuggestionSubtitle(dynamic suggestion, String? distanceText) {
     final displayName = suggestion['display_name']?.toString() ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,46 +377,101 @@ class MapMonitoring extends StatelessWidget {
             color: Colors.blue,
           ),
         ),
+        if (distanceText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              '≈ $distanceText',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
       ],
     );
   }
 
+  String? _getSuggestionDistanceText(dynamic suggestion) {
+    if (suggestion is! Map<String, dynamic>) return null;
+
+    final cached = suggestion['distance_text']?.toString();
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+
+    final location = suggestion['location'];
+    final userPosition = _routeController.userLocation.value;
+    if (location is! Map || userPosition == null) {
+      return null;
+    }
+
+    final lat = (location['lat'] as num?)?.toDouble();
+    final lng = (location['lng'] as num?)?.toDouble();
+    if (lat == null || lng == null) {
+      return null;
+    }
+
+    final target = ll.LatLng(lat, lng);
+    final distanceMeters =
+        RouteController.calculateDistance(userPosition, target);
+    final formatted = RouteController.formatDistance(distanceMeters);
+    suggestion['distance_meters'] = distanceMeters;
+    suggestion['distance_text'] = formatted;
+    return formatted;
+  }
+
   Future<void> _handleSuggestionTap(dynamic suggestion) async {
-    _searchController.text = suggestion['display_name'] ?? '';
     _routeController.searchSuggestions.clear();
     await _routeController.selectDestinationSuggestion(suggestion);
+    final resolvedAddress = _routeController.destinationAddress.value.isNotEmpty
+        ? _routeController.destinationAddress.value
+        : _routeController.destinationLabel.value;
+    if (resolvedAddress.isNotEmpty) {
+      _searchController.text = resolvedAddress;
+      _searchController.selection = TextSelection.collapsed(
+        offset: _searchController.text.length,
+      );
+    }
     _searchFocusNode.unfocus();
   }
 
-  Widget _buildFloatingButton() {
-    return Positioned(
-      left: 28,
-      bottom: 120,
-      child: GetX<RouteController>(
-        builder: (controller) {
-          return Visibility(
-            visible: controller.routeSteps.isNotEmpty,
-            child: FloatingActionButton(
-              heroTag: 'route-directions-fab',
-              backgroundColor: const Color(0xff45557B),
-              child: const Icon(Icons.directions, color: Colors.white),
-              onPressed: () => Get.bottomSheet(
-                RouteBottomSheetWidget(),
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                isDismissible: false,
-                enableDrag: false,
-                barrierColor: Colors.transparent,
-              ),
-            ),
-          );
-        },
-      ),
+  Widget _buildFloodMonitoringButton(BuildContext context) {
+    return GetX<RouteController>(
+      builder: (controller) {
+        final hasRouteSheet = controller.routeOptions.isNotEmpty ||
+            controller.routeSteps.isNotEmpty ||
+            controller.isLoading.value;
+        final media = MediaQuery.of(context);
+        final collapsedSheetHeight = hasRouteSheet
+            ? (media.size.height * 0.28) + media.padding.bottom + 36
+            : 50.0;
+        return Positioned(
+          bottom: collapsedSheetHeight,
+          left: 20,
+          child: const AnimatedMenuButton(),
+        );
+      },
     );
   }
 
-  Widget _buildFloodMonitoringButton() {
-    return const Positioned(bottom: 50, left: 20, child: AnimatedMenuButton());
+  Widget _buildRouteSheet() {
+    return GetX<RouteController>(
+      builder: (controller) {
+        final hasContent = controller.routeOptions.isNotEmpty ||
+            controller.routeSteps.isNotEmpty ||
+            controller.isLoading.value;
+        if (!hasContent) {
+          return const SizedBox.shrink();
+        }
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: RouteBottomSheetWidget(
+            key: const ValueKey('route-bottom-sheet'),
+          ),
+        );
+      },
+    );
   }
 
   void _clearSearch() {

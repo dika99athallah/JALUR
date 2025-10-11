@@ -52,8 +52,8 @@ class CrowdController extends GetxController {
   }
 
   String getLevel(int count) {
-    if (count > 2000) return 'Ramai';
-    if (count > 1000) return 'Sedang';
+    if (count > 100) return 'Ramai';
+    if (count > 50) return 'Sedang';
     return 'Sepi';
   }
 

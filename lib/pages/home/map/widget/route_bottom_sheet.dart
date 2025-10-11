@@ -22,8 +22,8 @@ class RouteBottomSheetWidget extends StatelessWidget {
     return DraggableScrollableSheet(
       expand: false,
       maxChildSize: 0.95,
-      initialChildSize: 0.3,
-      minChildSize: 0.3,
+      initialChildSize: 0.28,
+      minChildSize: 0.24,
       builder: (context, scrollController) {
         final mediaQuery = MediaQuery.of(context);
         final bottomPadding =
@@ -127,11 +127,7 @@ class RouteBottomSheetWidget extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () => Navigator.pop(Get.context!),
-            icon: const Icon(Icons.close, size: 20, color: Color(0xff6B7280)),
-            tooltip: 'Tutup',
-          ),
+          const SizedBox(width: 16),
         ],
       );
     });

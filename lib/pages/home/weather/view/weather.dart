@@ -66,12 +66,6 @@ class WeatherPage extends StatelessWidget {
     return 'Selamat Malam,';
   }
 
-  List<Shadow> _textShadows() => [
-        const Shadow(
-            color: Colors.black45, offset: Offset(0, 2), blurRadius: 4),
-        const Shadow(
-            color: Colors.black26, offset: Offset(0, 1), blurRadius: 1),
-      ];
   String _hourLabelFor(DateTime dt) {
     final now = DateTime.now();
     final diff =
@@ -120,100 +114,6 @@ class WeatherPage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildEmptyPredictionList() {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: 5,
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
-      itemBuilder: (context, index) {
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 8.w),
-          padding: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xff355469), width: 1.w),
-            borderRadius: BorderRadius.circular(50.r),
-            color: Colors.white,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '-',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12.sp,
-                  color: const Color(0xff355469),
-                ),
-              ),
-              SizedBox(height: 5.h),
-              Image.asset(
-                'assets/images/Cuaca Smart City Icon-02.png',
-                width: 40.w,
-                height: 35.h,
-              ),
-              SizedBox(height: 5.h),
-              Text(
-                '-',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12.sp,
-                  color: const Color(0xff355469),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyHistoryList() {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: 5,
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
-      itemBuilder: (context, index) {
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 8.w),
-          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 10.w),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xff355469), width: 1.w),
-            borderRadius: BorderRadius.circular(50.r),
-            color: Colors.white,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '-',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12.sp,
-                  color: const Color(0xff355469),
-                ),
-              ),
-              SizedBox(height: 5.h),
-              Image.asset(
-                'assets/images/Cuaca Smart City Icon-05.png',
-                width: 36.w,
-                height: 32.h,
-              ),
-              SizedBox(height: 5.h),
-              Text(
-                '-',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12.sp,
-                  color: const Color(0xff355469),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -467,7 +367,7 @@ class WeatherPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xfff5f7fb),
       body: Obx(() {
         if (controller.loading.value) {
           return _buildShimmerSkeleton();
@@ -483,7 +383,7 @@ class WeatherPage extends StatelessWidget {
         final tempRaw = controller.temperature.value;
         final parsedTemp = double.tryParse(tempRaw.replaceAll(',', '.'));
         final mainTempDisplay = parsedTemp != null
-            ? '${parsedTemp.toStringAsFixed(1)}° C'
+            ? '${parsedTemp.toStringAsFixed(1)}°C'
             : (tempRaw.isNotEmpty ? tempRaw : '-');
         final rangeDisplay = controller.temperatureRange.value;
         final description = controller.description.value;
@@ -511,419 +411,557 @@ class WeatherPage extends StatelessWidget {
         final now = DateTime.now();
         final nowHourEpoch = _floorHourEpochSeconds(now);
         return SafeArea(
-          top: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
+          child: ColoredBox(
+            color: const Color(0xfff5f7fb),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: 28.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const DiagonalContainer(),
-                  if (background.isNotEmpty)
-                    Positioned.fill(
-                      child: ClipPath(
-                        clipper: DiagonalClipper(),
-                        child: Image.asset(
-                          background,
-                          fit: BoxFit.cover,
-                          colorBlendMode: BlendMode.srcOver,
-                          color: Colors.black.withOpacity(0.15),
-                        ),
-                      ),
-                    ),
                   Padding(
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 16.w,
-                      left: 16.w,
-                      right: 16.w,
-                      bottom: 35.w,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.arrow_back, size: 22.sp),
-                              color: Colors.white,
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                            SizedBox(width: 12.w),
-                            Expanded(
-                              child: Text(
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14.r),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x11000000),
+                                blurRadius: 10,
+                                offset: Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_back_ios_new_rounded,
+                                size: 18.sp, color: const Color(0xff1f2a44)),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        SizedBox(width: 14.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
                                 location,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lexend(
                                   fontSize: 18.sp,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  shadows: _textShadows(),
+                                  color: const Color(0xff45557B),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 12.h),
-                        Text(
-                          '$greeting $username',
-                          style: GoogleFonts.lexend(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            shadows: _textShadows(),
+                              SizedBox(height: 4.h),
+                              Text(
+                                '$greeting $username',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13.sp,
+                                  color: const Color(0xff45557B),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        SizedBox(height: 6.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 250),
-                                child: Image.asset(
-                                  weatherIcon,
-                                  key: ValueKey<String>(weatherIcon),
-                                  width: 320.w,
-                                  height: 150.h,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) =>
-                                      const SizedBox.shrink(),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    mainTempDisplay,
-                                    style: GoogleFonts.lexend(
-                                      fontSize: 40.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      shadows: _textShadows(),
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    description,
-                                    style: GoogleFonts.lexend(
-                                      fontSize: 24.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                      shadows: _textShadows(),
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    rangeDisplay,
-                                    style: GoogleFonts.lexend(
-                                      fontSize: 18.sp,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white,
-                                      shadows: _textShadows(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),
                   ),
+                  SizedBox(height: 20.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: _buildTodayOverviewCard(
+                      weatherIcon: weatherIcon,
+                      background: background,
+                      temperature: mainTempDisplay,
+                      description: description,
+                      range: rangeDisplay,
+                    ),
+                  ),
+                  SizedBox(height: 28.h),
+                  _buildSectionHeader('Prediksi Cuaca'),
+                  SizedBox(height: 14.h),
+                  SizedBox(
+                    height: 128.h,
+                    child: Obx(() {
+                      if (controller.hourlyLoading.value) {
+                        return _buildHourlyShimmerList();
+                      }
+                      final list = controller.hourlyWindow;
+                      if (list.isEmpty) {
+                        return _buildMinimalEmptyList(
+                          iconPath:
+                              'assets/images/Cuaca Smart City Icon-02.png',
+                          message: 'Data belum tersedia',
+                        );
+                      }
+                      final itemCount = list.length.clamp(0, 12);
+                      return ListView.separated(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          final item = list[index];
+                          final dt = DateTime.fromMillisecondsSinceEpoch(
+                              (item['dt'] as int) * 1000);
+                          final label = _hourLabelFor(dt);
+                          final temp = (item['temp'] is num)
+                              ? '${(item['temp'] as num).toDouble().toStringAsFixed(1)}°C'
+                              : item['temp'].toString();
+                          final desc = item['description'] as String? ?? '';
+                          final rawDesc =
+                              item['rawDescription'] as String? ?? desc;
+                          final conditionType =
+                              item['conditionType'] as String?;
+                          final iconPath = WeatherHelper.getImageForWeather(
+                            rawDesc,
+                            conditionType: conditionType,
+                          );
+                          final itemEpoch = (item['dt'] as int);
+                          final isActive = itemEpoch == nowHourEpoch;
+                          final activeTemp = parsedTemp != null
+                              ? '${parsedTemp.toStringAsFixed(1)}°C'
+                              : temp;
+                          return _ForecastChip(
+                            label: label,
+                            value: isActive ? activeTemp : temp,
+                            iconPath: iconPath,
+                            highlight: isActive,
+                          );
+                        },
+                        separatorBuilder: (_, __) => SizedBox(width: 14.w),
+                        itemCount: itemCount,
+                      );
+                    }),
+                  ),
+                  SizedBox(height: 32.h),
+                  _buildSectionHeader('Cuaca Lampau'),
+                  SizedBox(height: 14.h),
+                  SizedBox(
+                    height: 136.h,
+                    child: Obx(() {
+                      if (controller.historyLoading.value) {
+                        return _buildHistoryShimmerList();
+                      }
+                      final list = controller.history;
+                      if (list.isEmpty) {
+                        return _buildMinimalEmptyList(
+                          iconPath:
+                              'assets/images/Cuaca Smart City Icon-05.png',
+                          message: 'Belum ada rekam cuaca',
+                        );
+                      }
+                      final itemCount = list.length.clamp(0, 12);
+                      return ListView.separated(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          final item = list[index];
+                          final dt = DateTime.fromMillisecondsSinceEpoch(
+                              (item['dt'] as int) * 1000);
+                          final label = _hourLabelFor(dt);
+                          final temp = (item['temp'] is num)
+                              ? '${(item['temp'] as num).toDouble().toStringAsFixed(1)}°C'
+                              : item['temp'].toString();
+                          final desc = item['description'] as String? ?? '';
+                          final rawDesc =
+                              item['rawDescription'] as String? ?? desc;
+                          final conditionType =
+                              item['conditionType'] as String?;
+                          final iconPath = WeatherHelper.getImageForWeather(
+                            rawDesc,
+                            conditionType: conditionType,
+                          );
+                          return _HistoryCard(
+                            label: label,
+                            value: temp,
+                            iconPath: iconPath,
+                          );
+                        },
+                        separatorBuilder: (_, __) => SizedBox(width: 14.w),
+                        itemCount: itemCount,
+                      );
+                    }),
+                  ),
+                  SizedBox(height: 32.h),
+                  _buildSectionHeader('Hari ini'),
+                  SizedBox(height: 16.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: Column(
+                      children: days.map((d) {
+                        final isToday = d.day == today.day &&
+                            d.month == today.month &&
+                            d.year == today.year;
+                        final monthShort = monthNames[d.month - 1];
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 12.h),
+                          child: _DailyChip(
+                            label: '${d.day} $monthShort ${d.year}',
+                            highlight: isToday,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ],
               ),
-              SizedBox(height: 30.h),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(bottom: 32.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        child: Center(
-                          child: Text(
-                            'Prediksi Cuaca',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      SizedBox(
-                        height: 110.h,
-                        child: Obx(() {
-                          if (controller.hourlyLoading.value) {
-                            return _buildHourlyShimmerList();
-                          }
-                          final list = controller.hourlyWindow;
-                          if (list.isEmpty) {
-                            return _buildEmptyPredictionList();
-                          }
-                          final itemCount = list.length > 12 ? 12 : list.length;
-                          return ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: itemCount,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            itemBuilder: (context, index) {
-                              final item = list[index];
-                              final dt = DateTime.fromMillisecondsSinceEpoch(
-                                  (item['dt'] as int) * 1000);
-                              final label = _hourLabelFor(dt);
-                              final temp = (item['temp'] is num)
-                                  ? '${(item['temp'] as num).toDouble().toStringAsFixed(1)}°'
-                                  : item['temp'].toString();
-                              final desc = item['description'] as String? ?? '';
-                              final rawDesc =
-                                  item['rawDescription'] as String? ?? desc;
-                              final conditionType =
-                                  item['conditionType'] as String?;
-                              final iconPath = WeatherHelper.getImageForWeather(
-                                rawDesc,
-                                conditionType: conditionType,
-                              );
-                              final itemEpoch = (item['dt'] as int);
-                              final isActive = itemEpoch == nowHourEpoch;
-                              return Container(
-                                margin: EdgeInsets.symmetric(horizontal: 8.w),
-                                padding: EdgeInsets.all(12.w),
-                                decoration: BoxDecoration(
-                                  color: isActive
-                                      ? const Color(0xff355469)
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(50.r),
-                                  border: Border.all(
-                                    color: const Color(0xff355469),
-                                    width: 1.w,
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      label,
-                                      style: GoogleFonts.inter(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12.sp,
-                                        color: isActive
-                                            ? Colors.white
-                                            : const Color(0xff355469),
-                                      ),
-                                    ),
-                                    SizedBox(height: 5.h),
-                                    Image.asset(
-                                      iconPath,
-                                      width: 40.w,
-                                      height: 35.h,
-                                      color: isActive ? Colors.white : null,
-                                    ),
-                                    SizedBox(height: 5.h),
-                                    Text(
-                                      temp,
-                                      style: GoogleFonts.inter(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12.sp,
-                                        color: isActive
-                                            ? Colors.white
-                                            : const Color(0xff355469),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        }),
-                      ),
-                      SizedBox(height: 25.h),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        child: Center(
-                          child: Text(
-                            'Cuaca Lampau',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      SizedBox(
-                        height: 110.h,
-                        child: Obx(() {
-                          if (controller.historyLoading.value) {
-                            return _buildHistoryShimmerList();
-                          }
-                          final list = controller.history;
-                          if (list.isEmpty) {
-                            return _buildEmptyHistoryList();
-                          }
-                          final itemCount = list.length > 12 ? 12 : list.length;
-                          return ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: itemCount,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            itemBuilder: (context, index) {
-                              final item = list[index];
-                              final dt = DateTime.fromMillisecondsSinceEpoch(
-                                  (item['dt'] as int) * 1000);
-                              final label = _hourLabelFor(dt);
-                              final temp = (item['temp'] is num)
-                                  ? '${(item['temp'] as num).toDouble().toStringAsFixed(1)}°'
-                                  : item['temp'].toString();
-                              final desc = item['description'] as String? ?? '';
-                              final rawDesc =
-                                  item['rawDescription'] as String? ?? desc;
-                              final conditionType =
-                                  item['conditionType'] as String?;
-                              final iconPath = WeatherHelper.getImageForWeather(
-                                rawDesc,
-                                conditionType: conditionType,
-                              );
-                              return Container(
-                                margin: EdgeInsets.symmetric(horizontal: 8.w),
-                                padding: EdgeInsets.symmetric(
-                                  vertical: 12.h,
-                                  horizontal: 10.w,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(50.r),
-                                  border: Border.all(
-                                    color: const Color(0xff355469),
-                                    width: 1.w,
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      label,
-                                      style: GoogleFonts.inter(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12.sp,
-                                        color: const Color(0xff355469),
-                                      ),
-                                    ),
-                                    SizedBox(height: 5.h),
-                                    Image.asset(
-                                      iconPath,
-                                      width: 36.w,
-                                      height: 32.h,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) =>
-                                          const SizedBox.shrink(),
-                                    ),
-                                    SizedBox(height: 5.h),
-                                    Text(
-                                      temp,
-                                      style: GoogleFonts.inter(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12.sp,
-                                        color: const Color(0xff355469),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        }),
-                      ),
-                      SizedBox(height: 25.h),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        child: Center(
-                          child: Text(
-                            'Hari ini',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 18.h),
-                      SizedBox(
-                        height: 110.h,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: days.length,
-                          padding: EdgeInsets.symmetric(horizontal: 12.w),
-                          itemBuilder: (context, index) {
-                            final d = days[index];
-                            final isActive = index == 0;
-                            final monthShort = monthNames[d.month - 1];
-                            return Container(
-                              margin: EdgeInsets.symmetric(horizontal: 8.w),
-                              padding: EdgeInsets.symmetric(
-                                vertical: 12.h,
-                                horizontal: 16.w,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? const Color(0xff355469)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(50.r),
-                                border: Border.all(
-                                  color: const Color(0xff355469),
-                                  width: 1.w,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    monthShort,
-                                    style: GoogleFonts.inter(
-                                      color: isActive
-                                          ? Colors.white
-                                          : const Color(0xff355469),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${d.day}',
-                                    style: GoogleFonts.inter(
-                                      color: isActive
-                                          ? Colors.white
-                                          : const Color(0xff355469),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${d.year}',
-                                    style: GoogleFonts.inter(
-                                      color: isActive
-                                          ? Colors.white
-                                          : const Color(0xff355469),
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildTodayOverviewCard({
+    required String weatherIcon,
+    required String background,
+    required String temperature,
+    required String description,
+    required String range,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28.r),
+        gradient: const LinearGradient(
+          colors: [Color.fromARGB(255, 60, 75, 112), Color(0xff45557B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x220d3b66),
+            blurRadius: 22,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          if (background.isNotEmpty)
+            Positioned(
+              right: 0.w,
+              bottom: -20.h,
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  background,
+                  width: 220.w,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          temperature,
+                          style: GoogleFonts.lexend(
+                            fontSize: 38.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 6.h),
+                        Text(
+                          description,
+                          style: GoogleFonts.inter(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          range,
+                          style: GoogleFonts.inter(
+                            fontSize: 13.sp,
+                            color: Colors.white.withValues(alpha: 0.86),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 16.w),
+                  Image.asset(
+                    weatherIcon,
+                    width: 110.w,
+                    height: 110.w,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20.w),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.lexend(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xff45557B),
+              ),
+            ),
+          ),
+          Container(
+            width: 36.w,
+            height: 4.h,
+            decoration: BoxDecoration(
+              color: const Color(0xff45557B),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMinimalEmptyList({
+    required String iconPath,
+    required String message,
+  }) {
+    return Center(
+      child: Container(
+        width: 220.w,
+        margin: EdgeInsets.symmetric(vertical: 16.h),
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(color: const Color(0xffe5e7eb)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              iconPath,
+              width: 48.w,
+              height: 48.w,
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 13.sp,
+                color: const Color(0xff6b7280),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ForecastChip extends StatelessWidget {
+  const _ForecastChip({
+    required this.label,
+    required this.value,
+    required this.iconPath,
+    this.highlight = false,
+  });
+
+  final String label;
+  final String value;
+  final String iconPath;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bg = highlight ? const Color(0xff45557B) : Colors.white;
+    final Color fg = highlight ? Colors.white : const Color(0xff45557B);
+
+    return Container(
+      width: 120.w,
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: highlight ? const Color(0xff45557B) : const Color(0xffd1d5db),
+        ),
+        boxShadow: highlight
+            ? const [
+                BoxShadow(
+                  color: Color(0x1A1d4ed8),
+                  blurRadius: 20,
+                  offset: Offset(0, 12),
+                ),
+              ]
+            : const [
+                BoxShadow(
+                  color: Color(0x08000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 6),
+                ),
+              ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Image.asset(
+            iconPath,
+            width: 38.w,
+            height: 38.w,
+            color: highlight ? Colors.white : null,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            value,
+            style: GoogleFonts.lexend(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryCard extends StatelessWidget {
+  const _HistoryCard({
+    required this.label,
+    required this.value,
+    required this.iconPath,
+  });
+
+  final String label;
+  final String value;
+  final String iconPath;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 134.w,
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(color: const Color(0xffe5e7eb)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12.sp,
+              color: const Color(0xff6b7280),
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Image.asset(
+            iconPath,
+            width: 36.w,
+            height: 36.w,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            value,
+            style: GoogleFonts.lexend(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xff45557B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyChip extends StatelessWidget {
+  const _DailyChip({required this.label, this.highlight = false});
+
+  final String label;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bg = highlight ? const Color(0xff45557B) : Colors.white;
+    final Color fg = highlight ? Colors.white : const Color(0xff45557B);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(
+          color: highlight ? const Color(0xff45557B) : const Color(0xffe5e7eb),
+        ),
+        boxShadow: highlight
+            ? const [
+                BoxShadow(
+                  color: Color(0x1A1d4ed8),
+                  blurRadius: 18,
+                  offset: Offset(0, 10),
+                ),
+              ]
+            : const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 6),
+                ),
+              ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.lexend(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+          Icon(Icons.calendar_today_rounded, size: 16.sp, color: fg),
+        ],
+      ),
     );
   }
 }

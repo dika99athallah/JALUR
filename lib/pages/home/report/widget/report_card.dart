@@ -1,10 +1,13 @@
 import 'package:JIR/utils/file_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path/path.dart' as p;
+import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ReportListPage extends StatefulWidget {
   const ReportListPage({super.key});
@@ -63,6 +66,20 @@ class _ReportListPageState extends State<ReportListPage> {
         _ready = true;
       });
     }
+  }
+
+  String _resolveDocumentPath(Map<String, dynamic> source) {
+    final candidates = [
+      source['documentPath'],
+      source['document_path'],
+      source['documentUrl'],
+      source['document_url'],
+    ];
+    for (final candidate in candidates) {
+      final value = (candidate ?? '').toString();
+      if (value.isNotEmpty) return value;
+    }
+    return '';
   }
 
   Widget _buildShimmerItem() {
@@ -219,6 +236,7 @@ class _ReportListPageState extends State<ReportListPage> {
                 final description = (m['description'] as String?) ?? '';
                 final imageUrl = (m['imageUrl'] as String?) ?? '';
                 final dateTimeIso = (m['dateTimeIso'] as String?) ?? '';
+                final documentPath = _resolveDocumentPath(m);
                 return ReportCard(
                   username: username,
                   avatarUrl: avatarUrl,
@@ -226,6 +244,7 @@ class _ReportListPageState extends State<ReportListPage> {
                   description: description,
                   imageUrl: imageUrl,
                   dateTimeIso: dateTimeIso,
+                  documentPath: documentPath,
                   onShowImage: () {
                     if (imageUrl.isEmpty) return;
                     final isNetworkImage = imageUrl.startsWith('http');
@@ -272,8 +291,10 @@ class ReportCard extends StatelessWidget {
   final String description;
   final String imageUrl;
   final String dateTimeIso;
+  final String documentPath;
   final VoidCallback? onTap;
   final VoidCallback? onShowImage;
+  final VoidCallback? onOpenDocument;
 
   const ReportCard({
     super.key,
@@ -283,8 +304,10 @@ class ReportCard extends StatelessWidget {
     required this.description,
     required this.imageUrl,
     required this.dateTimeIso,
+    required this.documentPath,
     this.onTap,
     this.onShowImage,
+    this.onOpenDocument,
   });
 
   Widget _buildAvatar() {
@@ -348,6 +371,42 @@ class ReportCard extends StatelessWidget {
     );
   }
 
+  Future<void> _defaultOpenDocument(BuildContext context) async {
+    if (documentPath.isEmpty) return;
+
+    if (onOpenDocument != null) {
+      onOpenDocument!();
+      return;
+    }
+
+    if (documentPath.startsWith('http')) {
+      final uri = Uri.tryParse(documentPath);
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak dapat membuka tautan dokumen.')),
+        );
+      }
+      return;
+    }
+
+    final file = resolveLocalFile(documentPath);
+    if (file != null) {
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka dokumen: ${result.message}')),
+        );
+      }
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Lampiran tidak ditemukan.')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isNetworkImage = imageUrl.startsWith('http');
@@ -389,6 +448,40 @@ class ReportCard extends StatelessWidget {
             ]),
             const SizedBox(height: 12),
             Text(description, style: GoogleFonts.inter(fontSize: 14)),
+            if (documentPath.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () => _defaultOpenDocument(context),
+                borderRadius: BorderRadius.circular(10),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F7FB),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade200, width: 0.6),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.insert_drive_file_outlined,
+                          color: Color(0xFF45557B), size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          p.basename(documentPath),
+                          style: GoogleFonts.inter(
+                              fontSize: 13, fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Icon(Icons.open_in_new_rounded,
+                          color: Color(0xFF45557B), size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             if (imageUrl.isNotEmpty)
               Stack(children: [
