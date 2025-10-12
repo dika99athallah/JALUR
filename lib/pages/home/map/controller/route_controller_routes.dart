@@ -375,6 +375,8 @@ extension RouteControllerRoutes on RouteController {
           (leg?['duration_in_traffic']?['value'] as num?)?.toDouble() ??
               duration;
 
+      final trafficSegments = _extractTrafficSegments(route, points);
+
       parsedOptions.add(
         RouteOption(
           id: 'route_$i',
@@ -386,6 +388,7 @@ extension RouteControllerRoutes on RouteController {
           durationTypical: duration,
           trafficDelay: math.max(durationInTraffic - duration, 0.0),
           summary: summaryRaw.isNotEmpty ? summaryRaw : 'Rute ${i + 1}',
+          trafficSegments: trafficSegments,
         ),
       );
     }
@@ -462,6 +465,8 @@ extension RouteControllerRoutes on RouteController {
         }
       }
 
+      final trafficSegments = _extractTrafficSegments(route, points);
+
       parsedOptions.add(
         RouteOption(
           id: 'route_pref_$i',
@@ -473,6 +478,7 @@ extension RouteControllerRoutes on RouteController {
           durationTypical: staticDuration > 0 ? staticDuration : duration,
           trafficDelay: trafficDelay,
           summary: description.isNotEmpty ? description : 'Rute ${i + 1}',
+          trafficSegments: trafficSegments,
         ),
       );
     }
@@ -645,6 +651,90 @@ extension RouteControllerRoutes on RouteController {
     }
 
     return const {'type': '', 'modifier': ''};
+  }
+
+  List<RouteTrafficSegment> _extractTrafficSegments(
+    dynamic rawRoute,
+    List<LatLng> decodedPoints,
+  ) {
+    if (decodedPoints.length < 2) {
+      return const <RouteTrafficSegment>[];
+    }
+
+    final routeMap = rawRoute is Map
+        ? rawRoute.cast<String, dynamic>()
+        : <String, dynamic>{};
+    final advisory = routeMap['travelAdvisory'];
+    if (advisory is! Map) {
+      return const <RouteTrafficSegment>[];
+    }
+
+    final intervalsRaw = advisory['speedReadingIntervals'];
+    if (intervalsRaw is! List) {
+      return const <RouteTrafficSegment>[];
+    }
+
+    final segments = <RouteTrafficSegment>[];
+    for (final interval in intervalsRaw.whereType<Map>()) {
+      final intervalMap = interval.cast<String, dynamic>();
+      final int? startIndex =
+          _parsePolylinePointIndex(intervalMap['startPolylinePointIndex']);
+      final int? endIndexExclusive =
+          _parsePolylinePointIndex(intervalMap['endPolylinePointIndex']);
+      final severity = _mapSpeedReadingToSeverity(intervalMap['speed']);
+
+      if (startIndex == null || severity == RouteTrafficSeverity.normal) {
+        continue;
+      }
+
+      final int clampedStart = startIndex.clamp(0, decodedPoints.length - 1);
+      final int exclusiveEndCandidate = endIndexExclusive ?? (clampedStart + 2);
+      final int clampedExclusiveEnd = math.max(
+        clampedStart + 1,
+        math.min(exclusiveEndCandidate, decodedPoints.length),
+      );
+
+      if (clampedExclusiveEnd - clampedStart < 2) {
+        continue;
+      }
+
+      final slice = decodedPoints.sublist(clampedStart, clampedExclusiveEnd);
+      segments.add(
+        RouteTrafficSegment(
+          startIndex: clampedStart,
+          endIndex: clampedExclusiveEnd - 1,
+          points: List<LatLng>.from(slice),
+          severity: severity,
+        ),
+      );
+    }
+
+    return segments;
+  }
+
+  int? _parsePolylinePointIndex(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  RouteTrafficSeverity _mapSpeedReadingToSeverity(dynamic value) {
+    final speed = value?.toString().toUpperCase().trim() ?? '';
+    switch (speed) {
+      case 'SLOW':
+      case 'TRAFFIC_SLOW':
+      case 'SLIGHTLY_SLOW':
+      case 'MODERATE':
+        return RouteTrafficSeverity.slow;
+      case 'TRAFFIC_JAM':
+      case 'STOP_AND_GO':
+      case 'CONGESTION':
+      case 'HEAVY':
+        return RouteTrafficSeverity.heavy;
+      default:
+        return RouteTrafficSeverity.normal;
+    }
   }
 
   List<Map<String, dynamic>> _extractGoogleRouteSteps(

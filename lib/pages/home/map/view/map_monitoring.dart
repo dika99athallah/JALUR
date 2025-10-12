@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:JIR/helper/google_map_view.dart';
 import 'package:JIR/pages/home/cctv/cctv_webview.dart';
 import 'package:JIR/pages/home/cctv/model/cctv_location.dart';
@@ -9,6 +11,7 @@ import 'package:JIR/pages/home/map/widget/route_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' show PatternItem;
 import 'package:latlong2/latlong.dart' as ll;
 
 class MapMonitoring extends StatelessWidget {
@@ -40,9 +43,10 @@ class MapMonitoring extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        centerTitle: false,
         title: Text(
           'Peta',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.lexend(
             fontWeight: FontWeight.bold,
             fontSize: 20,
             color: Colors.white,
@@ -50,7 +54,8 @@ class MapMonitoring extends StatelessWidget {
         ),
         backgroundColor: const Color(0xff45557B),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon:
+              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => Get.back(),
         ),
       ),
@@ -113,9 +118,21 @@ class MapMonitoring extends StatelessWidget {
                 .toList();
             final bool navigationMode = routeController.routeActive.value &&
                 routeController.remainingRouteDistance.value > 0;
+            final Set<String> trimmedPointKeys =
+                trimmedActivePolyline.isNotEmpty
+                    ? trimmedActivePolyline.map<String>(_latLngKey).toSet()
+                    : <String>{};
             final List<RouteLineConfig> routeLines = [];
+            final List<RouteBadgeConfig> routeBadges = [];
             const Color selectedRouteColor = Color(0xFF2563EB);
             const Color alternativeRouteColor = Color(0xFFF97316);
+            const Color slowTrafficColor = Color(0xFFFFA000);
+            const Color heavyTrafficColor = Color(0xFFD32F2F);
+            final double fastestDurationSeconds = routeOptions.isEmpty
+                ? 0.0
+                : routeOptions
+                    .map((option) => option.duration)
+                    .reduce(math.min);
 
             final hasRouteSheet = routeOptions.isNotEmpty ||
                 routeController.routeSteps.isNotEmpty ||
@@ -133,23 +150,85 @@ class MapMonitoring extends StatelessWidget {
               final optionPoints = option.points
                   .map((point) => ll.LatLng(point.latitude, point.longitude))
                   .toList();
+              final bool hasTrimmedPath =
+                  isSelected && trimmedActivePolyline.length >= 2;
               final pointsForRender =
-                  isSelected && trimmedActivePolyline.length >= 2
-                      ? trimmedActivePolyline
-                      : optionPoints;
+                  hasTrimmedPath ? trimmedActivePolyline : optionPoints;
 
-              final config = RouteLineConfig(
-                id: option.id,
-                points: pointsForRender,
-                color: isSelected ? selectedRouteColor : alternativeRouteColor,
-                width: isSelected ? 6.5 : 4.5,
-                opacity: isSelected ? 0.95 : 0.65,
+              routeLines.add(
+                RouteLineConfig(
+                  id: option.id,
+                  points: pointsForRender,
+                  color:
+                      isSelected ? selectedRouteColor : alternativeRouteColor,
+                  width: isSelected ? 7.0 : 5.0,
+                  opacity: isSelected ? 0.98 : 0.65,
+                  pattern: isSelected
+                      ? null
+                      : [
+                          PatternItem.dash(40),
+                          PatternItem.gap(24),
+                        ],
+                  zIndex: isSelected ? 3 : 1,
+                ),
               );
 
-              if (isSelected) {
-                routeLines.add(config);
-              } else {
-                routeLines.insert(0, config);
+              if (!isSelected && fastestDurationSeconds > 0) {
+                final diffSeconds = option.duration - fastestDurationSeconds;
+                final label = _formatRouteDifference(diffSeconds);
+                final badgeAnchor = _routeBadgeAnchor(optionPoints);
+                if (label != null && badgeAnchor != null) {
+                  routeBadges.add(
+                    RouteBadgeConfig(
+                      id: option.id,
+                      position: badgeAnchor,
+                      label: label,
+                      backgroundColor: Colors.white,
+                      borderColor: alternativeRouteColor,
+                      textColor: alternativeRouteColor,
+                    ),
+                  );
+                }
+              }
+
+              if (option.trafficSegments.isNotEmpty) {
+                for (var segIndex = 0;
+                    segIndex < option.trafficSegments.length;
+                    segIndex++) {
+                  final segment = option.trafficSegments[segIndex];
+                  final segmentPoints = segment.points
+                      .map(
+                          (point) => ll.LatLng(point.latitude, point.longitude))
+                      .toList();
+
+                  List<ll.LatLng> effectivePoints = segmentPoints;
+                  if (hasTrimmedPath && trimmedPointKeys.isNotEmpty) {
+                    effectivePoints = segmentPoints
+                        .where(
+                            (pt) => trimmedPointKeys.contains(_latLngKey(pt)))
+                        .toList();
+                    if (effectivePoints.length < 2) {
+                      continue;
+                    }
+                  }
+
+                  final Color trafficColor =
+                      segment.severity == RouteTrafficSeverity.heavy
+                          ? heavyTrafficColor
+                          : slowTrafficColor;
+
+                  routeLines.add(
+                    RouteLineConfig(
+                      id: '${option.id}_traffic_$segIndex',
+                      points: effectivePoints,
+                      color: trafficColor,
+                      width: isSelected ? 8.0 : 6.0,
+                      opacity: 0.95,
+                      zIndex: isSelected ? 5 : 2,
+                      clickable: false,
+                    ),
+                  );
+                }
               }
             }
 
@@ -182,6 +261,7 @@ class MapMonitoring extends StatelessWidget {
               ),
               enableMyLocation: true,
               bottomControlsPadding: bottomControlsPadding,
+              routeBadges: routeBadges,
             );
           },
         );
@@ -478,6 +558,25 @@ class MapMonitoring extends StatelessWidget {
     _searchController.clear();
     _routeController.searchSuggestions.clear();
     _routeController.clearRoute();
+  }
+
+  String _latLngKey(ll.LatLng value) {
+    final lat = value.latitude.toStringAsFixed(5);
+    final lng = value.longitude.toStringAsFixed(5);
+    return '$lat|$lng';
+  }
+
+  String? _formatRouteDifference(double seconds) {
+    if (seconds <= 30) return null;
+    final diffMinutes = (seconds / 60).ceil();
+    if (diffMinutes <= 0) return null;
+    return '+$diffMinutes menit';
+  }
+
+  ll.LatLng? _routeBadgeAnchor(List<ll.LatLng> points) {
+    if (points.isEmpty) return null;
+    final index = (points.length * 0.6).round().clamp(0, points.length - 1);
+    return points[index];
   }
 
   void _handleMarkerDataTap(Map<String, dynamic> item) {

@@ -1,11 +1,28 @@
 import 'package:JIR/app/routes/app_routes.dart';
+import 'package:JIR/pages/home/chat/view/chat_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ChatbotOpeningPage extends StatelessWidget {
+class ChatbotOpeningPage extends StatefulWidget {
   const ChatbotOpeningPage({super.key});
+
+  @override
+  State<ChatbotOpeningPage> createState() => _ChatbotOpeningPageState();
+}
+
+class _ChatbotOpeningPageState extends State<ChatbotOpeningPage> {
+  bool _assetsPrecached = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_assetsPrecached) return;
+    _assetsPrecached = true;
+    precacheImage(const AssetImage('assets/images/bg1.png'), context);
+    precacheImage(const AssetImage('assets/images/bg2.png'), context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +32,10 @@ class ChatbotOpeningPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Image.asset(
-            'assets/images/close_icon.png',
-            width: 17.w,
-            height: 17.w,
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: const Color(0xff45557B),
+            size: 20.sp,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -81,7 +98,13 @@ class ChatbotOpeningPage extends StatelessWidget {
                   SizedBox(height: 20.h),
                   ElevatedButton(
                     onPressed: () {
-                      Get.toNamed(AppRoutes.chatbottext);
+                      Get.to(
+                        () => const ChatView(),
+                        routeName: AppRoutes.chatbottext,
+                        transition: Transition.fadeIn,
+                        duration: const Duration(milliseconds: 300),
+                        preventDuplicates: false,
+                      );
                     },
                     style: ButtonStyle(
                       backgroundColor:
@@ -101,7 +124,7 @@ class ChatbotOpeningPage extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      "Start New Chat",
+                      "Ayo Memulai Chat",
                       style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 14.sp,
@@ -111,7 +134,16 @@ class ChatbotOpeningPage extends StatelessWidget {
                   ),
                   SizedBox(height: 20.h),
                   FloatingActionButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Get.to(
+                        () => const ChatView(),
+                        routeName: AppRoutes.chatbottext,
+                        arguments: const {'autoMic': true},
+                        transition: Transition.rightToLeft,
+                        duration: const Duration(milliseconds: 220),
+                        preventDuplicates: false,
+                      );
+                    },
                     backgroundColor: const Color(0xffEAEFF3),
                     child: Icon(
                       Icons.mic,

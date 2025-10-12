@@ -16,6 +16,7 @@ class _ChatViewState extends State<ChatView>
     with SingleTickerProviderStateMixin {
   final ChatController ctrl = Get.put(ChatController());
   late final AnimationController _visualizerController;
+  bool _autoMicHandled = false;
 
   @override
   void initState() {
@@ -24,6 +25,22 @@ class _ChatViewState extends State<ChatView>
         AnimationController(vsync: this, duration: const Duration(seconds: 3))
           ..repeat(reverse: true);
     ctrl.visualizerController = _visualizerController;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_autoMicHandled) return;
+    _autoMicHandled = true;
+    final args = Get.arguments;
+    final shouldAutoMic =
+        args is Map && (args['autoMic'] == true || args['autoMic'] == 'true');
+    if (shouldAutoMic) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ctrl.startListening();
+      });
+    }
   }
 
   @override
@@ -36,7 +53,6 @@ class _ChatViewState extends State<ChatView>
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -45,8 +61,11 @@ class _ChatViewState extends State<ChatView>
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Image.asset('assets/images/close_icon.png',
-              width: screenWidth * 0.04, height: screenHeight * 0.04),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: const Color(0xff45557B),
+            size: 22.sp,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),

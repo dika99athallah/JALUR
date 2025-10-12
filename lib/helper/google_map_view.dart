@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as ll;
 
@@ -14,6 +15,9 @@ class RouteLineConfig {
     required this.color,
     required this.width,
     this.opacity,
+    this.pattern,
+    this.zIndex,
+    this.clickable,
   });
 
   final String id;
@@ -21,6 +25,27 @@ class RouteLineConfig {
   final Color color;
   final double width;
   final double? opacity;
+  final List<PatternItem>? pattern;
+  final int? zIndex;
+  final bool? clickable;
+}
+
+class RouteBadgeConfig {
+  RouteBadgeConfig({
+    required this.id,
+    required this.position,
+    required this.label,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.textColor,
+  });
+
+  final String id;
+  final ll.LatLng position;
+  final String label;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color textColor;
 }
 
 class JirMapView extends StatefulWidget {
@@ -33,6 +58,7 @@ class JirMapView extends StatefulWidget {
     this.markers,
     this.markerData,
     this.routeLines,
+    this.routeBadges,
     this.waypoints,
     this.destination,
     this.navigationMode = false,
@@ -42,7 +68,7 @@ class JirMapView extends StatefulWidget {
     this.onMapCreated,
     this.enableMyLocation = false,
     this.autoFitBounds = true,
-    this.bottomControlsPadding = 32,
+    this.bottomControlsPadding = 15,
   });
 
   final ll.LatLng? initialLocation;
@@ -52,6 +78,7 @@ class JirMapView extends StatefulWidget {
   final List<ll.LatLng>? markers;
   final List<Map<String, dynamic>>? markerData;
   final List<RouteLineConfig>? routeLines;
+  final List<RouteBadgeConfig>? routeBadges;
   final List<ll.LatLng>? waypoints;
   final ll.LatLng? destination;
   final bool navigationMode;
@@ -482,6 +509,19 @@ class _JirMapViewState extends State<JirMapView> with TickerProviderStateMixin {
       );
     }
 
+    for (final badge in widget.routeBadges ?? const []) {
+      final icon = _badgeIconFor(badge);
+      markers.add(
+        Marker(
+          markerId: MarkerId('route_badge_${badge.id}'),
+          position: _toLatLng(badge.position),
+          icon: icon,
+          anchor: const Offset(0.5, 1.0),
+          zIndex: 120.0,
+        ),
+      );
+    }
+
     return markers;
   }
 
@@ -554,9 +594,11 @@ class _JirMapViewState extends State<JirMapView> with TickerProviderStateMixin {
         points: config.points.map(_toLatLng).toList(growable: false),
         width: config.width.round().clamp(1, 12),
         color: polylineColor,
-        consumeTapEvents: widget.onRouteTap != null,
-        onTap: widget.onRouteTap != null
-            ? () => widget.onRouteTap!(config.id)
+        patterns: config.pattern ?? const <PatternItem>[],
+        zIndex: ((config.zIndex ?? 0).clamp(-1 << 15, 1 << 15)).toInt(),
+        consumeTapEvents: config.clickable ?? widget.onRouteTap != null,
+        onTap: (config.clickable ?? widget.onRouteTap != null)
+            ? () => widget.onRouteTap?.call(config.id)
             : null,
       );
     }).toSet();
@@ -591,6 +633,80 @@ class _JirMapViewState extends State<JirMapView> with TickerProviderStateMixin {
       );
     }
     return circles;
+  }
+
+  BitmapDescriptor _badgeIconFor(RouteBadgeConfig badge) {
+    final cacheKey =
+        'badge_${badge.label}_${badge.backgroundColor.value}_${badge.borderColor.value}_${badge.textColor.value}';
+    final cached = _cachedMarkerIcons[cacheKey];
+    if (cached != null) return cached;
+    if (_generatingMarkerIcons.contains(cacheKey)) {
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+    }
+    _generatingMarkerIcons.add(cacheKey);
+    _createBadgeMarkerIcon(badge).then((descriptor) {
+      if (!mounted) return;
+      setState(() {
+        _cachedMarkerIcons[cacheKey] = descriptor;
+      });
+    }).whenComplete(() => _generatingMarkerIcons.remove(cacheKey));
+    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+  }
+
+  Future<BitmapDescriptor> _createBadgeMarkerIcon(
+      RouteBadgeConfig badge) async {
+    const double width = 200;
+    const double height = 100;
+    const double borderRadius = 28;
+    const double pointerHeight = 22;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, width, height));
+
+    final rect = Rect.fromLTWH(0, 0, width, height - pointerHeight);
+    final rrect =
+        RRect.fromRectAndRadius(rect, const Radius.circular(borderRadius));
+
+    final backgroundPaint = Paint()..color = badge.backgroundColor;
+    canvas.drawRRect(rrect, backgroundPaint);
+
+    final borderPaint = Paint()
+      ..color = badge.borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6;
+    canvas.drawRRect(rrect.deflate(1.5), borderPaint);
+
+    final pointerPath = Path()
+      ..moveTo(width / 2 - 18, height - pointerHeight)
+      ..lineTo(width / 2, height)
+      ..lineTo(width / 2 + 18, height - pointerHeight)
+      ..close();
+    canvas.drawPath(pointerPath, backgroundPaint);
+    canvas.drawPath(pointerPath, borderPaint);
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: badge.label,
+        style: GoogleFonts.inter(
+          fontSize: 30,
+          fontWeight: FontWeight.w700,
+          color: badge.textColor,
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: width - 40);
+
+    textPainter.paint(
+      canvas,
+      Offset((width - textPainter.width) / 2,
+          (rect.height - textPainter.height) / 2),
+    );
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(width.toInt(), height.toInt());
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
   }
 
   Color _resolveMarkerColor(Map<String, dynamic>? data) {

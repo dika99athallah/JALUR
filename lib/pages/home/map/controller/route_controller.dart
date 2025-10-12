@@ -25,7 +25,8 @@ class RouteOption {
     required this.summary,
     this.durationTypical = 0.0,
     this.trafficDelay = 0.0,
-  });
+    List<RouteTrafficSegment>? trafficSegments,
+  }) : trafficSegments = trafficSegments ?? const <RouteTrafficSegment>[];
 
   final String id;
   final int index;
@@ -36,6 +37,23 @@ class RouteOption {
   final String summary;
   final double durationTypical;
   final double trafficDelay;
+  final List<RouteTrafficSegment> trafficSegments;
+}
+
+enum RouteTrafficSeverity { normal, slow, heavy }
+
+class RouteTrafficSegment {
+  const RouteTrafficSegment({
+    required this.startIndex,
+    required this.endIndex,
+    required this.points,
+    required this.severity,
+  });
+
+  final int startIndex;
+  final int endIndex;
+  final List<LatLng> points;
+  final RouteTrafficSeverity severity;
 }
 
 class _RouteRequestOutcome {

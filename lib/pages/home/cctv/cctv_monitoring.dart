@@ -64,10 +64,10 @@ class _CCTVPageState extends State<CCTVPage> {
               color: Colors.white, size: 20.sp),
           onPressed: () => Navigator.pop(context),
         ),
-        centerTitle: true,
+        centerTitle: false,
         title: Text(
           'Pantau CCTV',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.lexend(
             fontSize: 18.sp,
             fontWeight: FontWeight.w700,
             color: Colors.white,

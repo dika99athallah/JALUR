@@ -450,7 +450,7 @@ class MicOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180.h,
+      height: 220.h,
       width: double.infinity,
       child: Stack(alignment: Alignment.center, children: [
         if (controllerValueGetter != null)
@@ -491,6 +491,19 @@ class MicOverlay extends StatelessWidget {
             'Mendengarkan...',
             style: GoogleFonts.inter(
                 fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+        ),
+        Positioned(
+          bottom: 12.h,
+          left: 40.w,
+          right: 40.w,
+          child: Text(
+            'Silakan berbicara lalu ketuk mikrofon lagi jika sudah selesai.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 14.sp,
+              color: const Color(0xff374151),
+            ),
           ),
         ),
       ]),

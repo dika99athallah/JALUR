@@ -16,26 +16,70 @@ class ReportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: _buildAppBar(),
+      backgroundColor: const Color(0xfff5f7fb),
+      appBar: _buildHeader(context),
       body: _buildBody(),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: Text(
-        'Lapor',
-        style: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          fontSize: 20.sp,
-          color: Colors.white,
+  PreferredSizeWidget _buildHeader(BuildContext context) {
+    return PreferredSize(
+      preferredSize: Size.fromHeight(100.h),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14.r),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x11000000),
+                      blurRadius: 10,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18.sp,
+                    color: const Color(0xff1f2a44),
+                  ),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+              SizedBox(width: 14.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Lapor',
+                      style: GoogleFonts.lexend(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xff45557B),
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      'Lampirkan bukti lalu isi detail laporan',
+                      style: GoogleFonts.inter(
+                        fontSize: 13.sp,
+                        color: const Color(0xff45557B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      backgroundColor: const Color(0xff45557B),
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
-        onPressed: () => Get.back(),
       ),
     );
   }
@@ -59,8 +103,16 @@ class ReportPage extends StatelessWidget {
               width: double.infinity,
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F7FB),
-                borderRadius: BorderRadius.circular(12.r),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(color: const Color(0xffe5e7eb)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x08000000),
+                    blurRadius: 16,
+                    offset: Offset(0, 8),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

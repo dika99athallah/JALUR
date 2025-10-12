@@ -27,12 +27,14 @@ class FloodMonitoringPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: const Text('Banjir'),
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.lexend(
             fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
         backgroundColor: const Color(0xff45557B),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon:
+              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => Get.back(),
         ),
       ),

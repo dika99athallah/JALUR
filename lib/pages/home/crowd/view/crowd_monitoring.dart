@@ -24,7 +24,7 @@ class CrowdMonitoringPage extends StatelessWidget {
     return AppBar(
       title: Text(
         'Kerumunan',
-        style: GoogleFonts.inter(
+        style: GoogleFonts.lexend(
           fontSize: 20.sp,
           color: Colors.white,
           fontWeight: FontWeight.w700,
@@ -33,8 +33,9 @@ class CrowdMonitoringPage extends StatelessWidget {
       backgroundColor: const Color(0xFF45557B),
       elevation: 10.r,
       shadowColor: Colors.black,
+      centerTitle: false,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
         color: Colors.white,
         onPressed: () => Get.back(),
       ),

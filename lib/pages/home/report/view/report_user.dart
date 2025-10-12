@@ -109,8 +109,8 @@ class ReportFormPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: _buildAppBar(),
+      backgroundColor: const Color(0xfff5f7fb),
+      appBar: _buildHeader(context),
       body: Column(
         children: [
           Expanded(
@@ -148,17 +148,67 @@ class ReportFormPage extends StatelessWidget {
     );
   }
 
-  AppBar _buildAppBar() => AppBar(
-        title: Text('Laporan Baru',
-            style: GoogleFonts.inter(
-                fontWeight: FontWeight.bold,
-                fontSize: 20.sp,
-                color: Colors.white)),
-        backgroundColor: const Color(0xff45557B),
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.sp),
-            onPressed: () => Get.back()),
-      );
+  PreferredSizeWidget _buildHeader(BuildContext context) {
+    return PreferredSize(
+      preferredSize: Size.fromHeight(100.h),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14.r),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x11000000),
+                      blurRadius: 10,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18.sp,
+                    color: const Color(0xff1f2a44),
+                  ),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+              SizedBox(width: 14.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Laporan Baru',
+                      style: GoogleFonts.lexend(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xff45557B),
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      'Lengkapi informasi untuk proses cepat',
+                      style: GoogleFonts.inter(
+                        fontSize: 13.sp,
+                        color: const Color(0xff45557B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildAttachmentsSection(BuildContext context) {
     return Column(
