@@ -134,6 +134,7 @@ class _NotificationPageState extends State<NotificationPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         shadowColor: Colors.transparent,
@@ -141,7 +142,7 @@ class _NotificationPageState extends State<NotificationPage> {
         surfaceTintColor: Colors.white,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         title: Text('Notifikasi',
-            style: GoogleFonts.inter(
+            style: GoogleFonts.lexend(
                 fontSize: 20.sp,
                 color: Colors.black,
                 fontWeight: FontWeight.bold)),

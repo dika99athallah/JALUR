@@ -389,7 +389,7 @@ class _HomePageState extends State<HomePage> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Berita Terkini',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.lexend(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF333333),

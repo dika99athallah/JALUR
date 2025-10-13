@@ -144,7 +144,7 @@ class _FeatureIcon extends StatelessWidget {
               child: Text(
                 label,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.lexend(
                   fontSize: 11.sp,
                   color: const Color(0xFF355469),
                 ),

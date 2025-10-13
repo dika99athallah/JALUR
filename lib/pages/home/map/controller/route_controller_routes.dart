@@ -60,7 +60,7 @@ extension RouteControllerRoutes on RouteController {
     if (!GoogleMapsConfig.isValid()) {
       _showUserMessage(
         'API Google Maps tidak tersedia',
-        'Pastikan GOOGLE_MAPS_API_KEY sudah dikonfigurasi pada aplikasi.',
+        'Pastikan GOOGLE_MAPS_SERVICES_KEY sudah dikonfigurasi pada aplikasi.',
       );
       return;
     }
@@ -239,7 +239,7 @@ extension RouteControllerRoutes on RouteController {
     final query = <String, dynamic>{
       'origin': '${start.latitude},${start.longitude}',
       'destination': '${end.latitude},${end.longitude}',
-      'key': GoogleMapsConfig.apiKey,
+      'key': GoogleMapsConfig.servicesApiKey,
       'alternatives': 'true',
       'language': 'id',
       'region': 'id',
@@ -801,7 +801,7 @@ extension RouteControllerRoutes on RouteController {
   Map<String, String> _buildRoutesHeaders({required String fieldMask}) {
     final headers = <String, String>{
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
+      'X-Goog-Api-Key': GoogleMapsConfig.servicesApiKey,
       'X-Goog-FieldMask': fieldMask,
     };
 

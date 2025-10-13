@@ -17,7 +17,7 @@ class LoginPage extends GetView<LoginController> {
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           color: Colors.black,
           onPressed: () => Get.toNamed(AppRoutes.home),
         ),

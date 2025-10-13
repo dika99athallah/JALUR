@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:JIR/pages/auth/controller/forgot_password_controller.dart';
-import 'package:JIR/pages/auth/widget/helper_auth.dart'; 
+import 'package:JIR/pages/auth/widget/helper_auth.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   final ForgotPasswordController controller =
@@ -28,7 +28,7 @@ class ForgotPasswordPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Reset Password',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.lexend(
                         fontSize: 20.sp, fontWeight: FontWeight.bold)),
                 SizedBox(height: 12.h),
                 Text(

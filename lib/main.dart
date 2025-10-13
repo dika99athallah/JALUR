@@ -5,23 +5,32 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:workmanager/workmanager.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'package:JIR/app/routes/app_routes.dart';
 import 'package:JIR/bindings/initial_binding.dart';
 import 'package:JIR/services/notification_service/background_handler.dart';
 import 'package:JIR/services/notification_service/notification_service.dart';
-import 'package:JIR/services/notification_service/workmanager_service.dart';
+import 'package:JIR/helper/google_maps_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   await dotenv.load(fileName: ".env");
   if (!kIsWeb) {
-    final mapsKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
-    if (mapsKey.isEmpty) {
-      debugPrint('GOOGLE_MAPS_API_KEY not found in .env');
+    final servicesKey = GoogleMapsConfig.servicesApiKey;
+    if (servicesKey.isEmpty) {
+      debugPrint('GOOGLE_MAPS_SERVICES_KEY gada di env.');
+    }
+
+    if (!GoogleMapsConfig.hasSdkKey) {
+      debugPrint(
+        'gada',
+      );
     }
   }
 
@@ -44,19 +53,20 @@ Future<void> main() async {
   debugPrint('Continuing init: opening Hive boxes and registering services');
   await Hive.openBox('authBox');
   await Hive.openBox('notifications');
+  await Hive.openBox('chatHistory');
   FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
   await NotificationService.I.init();
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
-  try {
-    await Workmanager().registerPeriodicTask(
-      "floodTaskUnique",
-      floodTaskName,
-      frequency: const Duration(minutes: 15),
-      initialDelay: const Duration(seconds: 10),
-    );
-  } catch (e) {
-    debugPrint('Workmanager registerPeriodicTask error: $e');
-  }
+  // await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  // try {
+  //   await Workmanager().registerPeriodicTask(
+  //     "floodTaskUnique",
+  //     floodTaskName,
+  //     frequency: const Duration(minutes: 15),
+  //     initialDelay: const Duration(seconds: 10),
+  //   );
+  // } catch (e) {
+  //   debugPrint('Workmanager registerPeriodicTask error: $e');
+  // }
 
   runApp(
     ScreenUtilInit(

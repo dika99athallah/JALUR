@@ -1,5 +1,6 @@
 import 'package:JIR/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:JIR/pages/home/main/view/home.dart';
@@ -71,10 +72,10 @@ class _MenuState extends State<Menu> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           backgroundColor: Colors.white,
           title: Text('Login Diperlukan',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+              style: GoogleFonts.lexend(fontWeight: FontWeight.w500)),
           content: Text(
               'Untuk mengakses fitur ini, Anda perlu memiliki akun terlebih dahulu.',
-              style: GoogleFonts.inter()),
+              style: GoogleFonts.inter(fontSize: 13.sp)),
           actions: [
             TextButton(
               onPressed: () {
@@ -82,8 +83,10 @@ class _MenuState extends State<Menu> {
                 Get.toNamed(AppRoutes.signup);
               },
               child: Text('Register',
-                  style: GoogleFonts.inter(
-                      color: Color(0xffE45835), fontWeight: FontWeight.w600)),
+                  style: GoogleFonts.lexend(
+                      color: Color(0xffE45835),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14.sp)),
             ),
             TextButton(
               onPressed: () {
@@ -91,8 +94,10 @@ class _MenuState extends State<Menu> {
                 Get.toNamed(AppRoutes.login);
               },
               child: Text('Login',
-                  style: GoogleFonts.inter(
-                      color: Color(0xffE45835), fontWeight: FontWeight.w600)),
+                  style: GoogleFonts.lexend(
+                      color: Color(0xffE45835),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14.sp)),
             ),
           ],
         );
@@ -123,7 +128,7 @@ class _MenuState extends State<Menu> {
           selectedItemColor: const Color(0xffE45835),
           unselectedItemColor: const Color(0xff1A1A1A),
           selectedLabelStyle: GoogleFonts.inter(
-            fontSize: 12,
+            fontSize: 12.sp,
             fontWeight: FontWeight.w400,
           ),
           onTap: _onItemTapped,

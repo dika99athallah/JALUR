@@ -4,6 +4,7 @@ import 'package:JIR/helper/google_maps_config.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get_utils/src/platform/platform.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class WeatherService {
   WeatherService({http.Client? client}) : _client = client ?? http.Client();
@@ -13,15 +14,42 @@ class WeatherService {
   final http.Client _client;
 
   String get _apiKey {
-    final key = dotenv.env['GOOGLE_WEATHER_API_KEY'] ??
-        dotenv.env['GOOGLE_MAPS_API_KEY'] ??
-        '';
-    if (key.isEmpty) {
-      throw StateError(
-        'Google Weather API key is missing. Set GOOGLE_WEATHER_API_KEY in your .env file.',
-      );
+    final candidates = <(String source, String?)>[
+      if (GetPlatform.isAndroid)
+        (
+          'GOOGLE_WEATHER_ANDROID_KEY',
+          dotenv.env['GOOGLE_WEATHER_ANDROID_KEY']
+        ),
+      if (GetPlatform.isIOS || GetPlatform.isMacOS)
+        ('GOOGLE_WEATHER_IOS_KEY', dotenv.env['GOOGLE_WEATHER_IOS_KEY']),
+      ('GOOGLE_WEATHER_API_KEY', dotenv.env['GOOGLE_WEATHER_API_KEY']),
+      ('WEATHER_API_KEY', dotenv.env['WEATHER_API_KEY']),
+      ('GOOGLE_MAPS_SERVICES_KEY', dotenv.env['GOOGLE_MAPS_SERVICES_KEY']),
+      ('GOOGLE_MAPS_API_KEY', dotenv.env['GOOGLE_MAPS_API_KEY']),
+      (
+        'GoogleMapsConfig.servicesApiKey',
+        GoogleMapsConfig.servicesApiKey,
+      ),
+    ];
+
+    for (final entry in candidates) {
+      final key = entry.$2?.trim();
+      if (key != null && key.isNotEmpty) {
+        if (kDebugMode) {
+          final suffix = key.length >= 4 ? key.substring(key.length - 4) : key;
+          debugPrint(
+            '[WeatherService] Using API key from ${entry.$1} (suffix $suffix)',
+          );
+        }
+        return key;
+      }
     }
-    return key;
+
+    throw StateError(
+      'Google Weather API key is missing. Set GOOGLE_MAPS_SERVICES_KEY atau '
+      'GOOGLE_WEATHER_ANDROID_KEY / GOOGLE_WEATHER_IOS_KEY (atau '
+      'GOOGLE_WEATHER_API_KEY) di berkas .env.',
+    );
   }
 
   Future<WeatherCurrent> fetchCurrent({
@@ -205,6 +233,10 @@ Map<String, String> _buildHeaders() {
     }
   }
 
+  if (kDebugMode) {
+    debugPrint('[WeatherService] Request headers: $headers');
+  }
+
   return headers;
 }
 
@@ -255,9 +287,9 @@ String _formatError(http.Response response) {
 String? _hintForReason(String? reason) {
   switch (reason) {
     case 'API_KEY_IOS_APP_BLOCKED':
-      return 'Ensure GOOGLE_IOS_BUNDLE_ID matches the allowed bundle identifiers for the Google Weather API key or provide an unrestricted key via GOOGLE_WEATHER_API_KEY.';
+      return 'Ensure GOOGLE_IOS_BUNDLE_ID matches the iOS restrictions for the Google Weather API key or supply a platform-specific key via GOOGLE_WEATHER_IOS_KEY.';
     case 'API_KEY_ANDROID_APP_BLOCKED':
-      return 'Ensure GOOGLE_ANDROID_PACKAGE and GOOGLE_ANDROID_CERT_SHA1 match the allowed Android package and certificate SHA-1 for the Google Weather API key.';
+      return 'Ensure GOOGLE_ANDROID_PACKAGE and GOOGLE_ANDROID_CERT_SHA1 match the Android restrictions for the Google Weather API key or set GOOGLE_WEATHER_ANDROID_KEY to a key with the correct allowance.';
     default:
       return null;
   }

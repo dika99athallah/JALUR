@@ -10,7 +10,7 @@ extension RouteControllerPlaces on RouteController {
     bool includeSessionToken = false,
   }) {
     final headers = <String, String>{
-      'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
+      'X-Goog-Api-Key': GoogleMapsConfig.servicesApiKey,
       'X-Goog-FieldMask': fieldMask,
     };
 

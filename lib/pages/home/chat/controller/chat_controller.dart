@@ -7,6 +7,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:JIR/services/chat_service/chat_api_service.dart';
+import 'package:JIR/services/chat_service/chat_history_service.dart';
 import 'package:JIR/pages/home/map/controller/route_controller.dart';
 import 'package:JIR/app/routes/app_routes.dart';
 
@@ -16,6 +17,8 @@ class ChatController extends GetxController with StateMixin<void> {
   final RxBool isChatVisible = true.obs;
   final RxBool loadingVisible = false.obs;
   final RxSet<int> previewVisible = <int>{}.obs;
+  final RxList<Map<String, dynamic>> rooms = <Map<String, dynamic>>[].obs;
+  final RxnString currentRoomId = RxnString();
 
   late stt.SpeechToText _speech;
   final FlutterTts _flutterTts = FlutterTts();
@@ -37,7 +40,19 @@ class ChatController extends GetxController with StateMixin<void> {
 
   Future<void> _initProfileAndMessages() async {
     await _loadUsername();
-    await _simulateInitialMessages();
+    await ChatHistoryService.ensureInitialized();
+    await _refreshRooms();
+    if (rooms.isEmpty) {
+      final defaultRoomId =
+          await ChatHistoryService.createRoom(title: 'Obrolan Saya');
+      await _refreshRooms(selectRoomId: defaultRoomId);
+    }
+    await _loadMessagesForCurrentRoom();
+    if (messages.isEmpty) {
+      await _simulateInitialMessages();
+    } else {
+      scrollToBottom();
+    }
   }
 
   Future<void> _loadUsername() async {
@@ -51,6 +66,153 @@ class ChatController extends GetxController with StateMixin<void> {
     } catch (_) {
       username.value = 'Pengguna';
     }
+  }
+
+  Future<void> _refreshRooms({String? selectRoomId}) async {
+    final loadedRooms = ChatHistoryService.getRooms();
+    rooms.assignAll(loadedRooms);
+
+    if (selectRoomId != null) {
+      currentRoomId.value = selectRoomId;
+    } else if (currentRoomId.value == null && rooms.isNotEmpty) {
+      currentRoomId.value = rooms.first['id']?.toString();
+    } else if (currentRoomId.value != null &&
+        rooms.every((room) => room['id']?.toString() != currentRoomId.value)) {
+      currentRoomId.value =
+          rooms.isNotEmpty ? rooms.first['id']?.toString() : null;
+    }
+  }
+
+  Future<void> _loadMessagesForCurrentRoom() async {
+    final roomId = currentRoomId.value;
+    if (roomId == null) {
+      messages.clear();
+      return;
+    }
+
+    final room = ChatHistoryService.getRoom(roomId);
+    final List<Map<String, dynamic>> restored = [];
+    if (room != null && room['messages'] is List) {
+      for (final dynamic item in (room['messages'] as List)) {
+        if (item is Map) {
+          restored.add(Map<String, dynamic>.from(item));
+        }
+      }
+    }
+
+    previewVisible.clear();
+    previewVisible.refresh();
+    messages.assignAll(restored);
+    if (messages.isNotEmpty) {
+      scrollToBottom();
+    }
+  }
+
+  Future<void> _persistCurrentMessages() async {
+    final roomId = currentRoomId.value;
+    if (roomId == null) return;
+    Map<String, dynamic> copyMessage(Map<String, dynamic> msg) {
+      try {
+        final dynamic safe = jsonDecode(jsonEncode(msg));
+        if (safe is Map) {
+          return Map<String, dynamic>.from(safe);
+        }
+      } catch (_) {}
+      return Map<String, dynamic>.from(msg);
+    }
+
+    final snapshot = messages.map(copyMessage).toList();
+    await ChatHistoryService.saveMessages(roomId, snapshot);
+    await _refreshRooms(selectRoomId: roomId);
+  }
+
+  Future<void> switchRoom(String roomId) async {
+    if (currentRoomId.value == roomId) return;
+    await _persistCurrentMessages();
+    currentRoomId.value = roomId;
+    await _loadMessagesForCurrentRoom();
+    if (messages.isEmpty) {
+      await _simulateInitialMessages();
+    }
+  }
+
+  Future<void> createNewRoom() async {
+    await _persistCurrentMessages();
+    final String title = _generateRoomTitle();
+    final String newRoomId = await ChatHistoryService.createRoom(title: title);
+    await _refreshRooms(selectRoomId: newRoomId);
+    messages.clear();
+    previewVisible.clear();
+    previewVisible.refresh();
+    await _simulateInitialMessages();
+  }
+
+  Future<void> deleteRoom(String roomId) async {
+    if (roomId.isEmpty) return;
+    final bool wasCurrent = currentRoomId.value == roomId;
+    await ChatHistoryService.deleteRoom(roomId);
+
+    if (wasCurrent) {
+      messages.clear();
+      previewVisible.clear();
+      previewVisible.refresh();
+      currentRoomId.value = null;
+    }
+
+    await _refreshRooms(selectRoomId: wasCurrent ? null : currentRoomId.value);
+
+    if (rooms.isEmpty) {
+      final String newRoomId =
+          await ChatHistoryService.createRoom(title: 'Obrolan Saya');
+      await _refreshRooms(selectRoomId: newRoomId);
+      await _loadMessagesForCurrentRoom();
+      if (messages.isEmpty) {
+        await _simulateInitialMessages();
+      }
+      return;
+    }
+
+    if (wasCurrent) {
+      currentRoomId.value = rooms.first['id']?.toString();
+      await _loadMessagesForCurrentRoom();
+      if (messages.isEmpty) {
+        await _simulateInitialMessages();
+      }
+    }
+  }
+
+  String _generateRoomTitle() {
+    final titles = rooms.map((room) => room['title']?.toString() ?? '').toSet();
+    var index = rooms.length + 1;
+    var candidate = 'Obrolan $index';
+    while (titles.contains(candidate)) {
+      index++;
+      candidate = 'Obrolan $index';
+    }
+    return candidate;
+  }
+
+  Future<void> renameRoom(
+      {required String roomId, required String title}) async {
+    final trimmed = title.trim();
+    if (roomId.isEmpty || trimmed.isEmpty) return;
+    await ChatHistoryService.renameRoom(roomId, trimmed);
+    await _refreshRooms(selectRoomId: currentRoomId.value ?? roomId);
+  }
+
+  String get currentRoomTitle {
+    final id = currentRoomId.value;
+    if (id == null) return 'Obrolan';
+    for (final room in rooms) {
+      if (room['id']?.toString() == id) {
+        final title = room['title']?.toString();
+        if (title != null && title.trim().isNotEmpty) {
+          return title.trim();
+        }
+        break;
+      }
+    }
+    return 'Obrolan';
   }
 
   @override
@@ -82,6 +244,7 @@ class ChatController extends GetxController with StateMixin<void> {
       messages.add(Map<String, dynamic>.from(m));
       scrollToBottom();
     }
+    await _persistCurrentMessages();
   }
 
   void showLoading({String? message}) {
@@ -163,6 +326,7 @@ class ChatController extends GetxController with StateMixin<void> {
     if (text.isNotEmpty) {
       messages.add({"text": text, "isSender": true});
       scrollToBottom();
+      await _persistCurrentMessages();
       await sendMessages(text);
     } else {
       scrollToBottom();
@@ -376,6 +540,7 @@ class ChatController extends GetxController with StateMixin<void> {
     };
     messages.add(Map<String, dynamic>.from(messageEntry));
 
+    await _persistCurrentMessages();
     scrollToBottom();
     try {
       await _flutterTts.speak(botText);
@@ -650,6 +815,7 @@ class ChatController extends GetxController with StateMixin<void> {
     messages.add({"text": text, "isSender": true});
     textController.clear();
     scrollToBottom();
+    unawaited(_persistCurrentMessages());
     sendMessages(text);
   }
 }

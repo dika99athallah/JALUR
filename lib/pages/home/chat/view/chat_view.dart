@@ -1,6 +1,7 @@
 import 'package:JIR/app/routes/app_routes.dart';
 import 'package:JIR/pages/home/chat/controller/chat_controller.dart';
 import 'package:JIR/pages/home/chat/widget/chat_widget.dart';
+import 'package:JIR/pages/home/chat/widget/chat_history_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -17,6 +18,38 @@ class _ChatViewState extends State<ChatView>
   final ChatController ctrl = Get.put(ChatController());
   late final AnimationController _visualizerController;
   bool _autoMicHandled = false;
+
+  void _showHistorySheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Obx(() {
+          return ChatHistorySheet(
+            rooms: ctrl.rooms
+                .map((room) => Map<String, dynamic>.from(room))
+                .toList(),
+            currentRoomId: ctrl.currentRoomId.value,
+            onSelectRoom: (roomId) async {
+              Navigator.of(ctx).pop();
+              await ctrl.switchRoom(roomId);
+            },
+            onCreateRoom: () async {
+              Navigator.of(ctx).pop();
+              await ctrl.createNewRoom();
+            },
+            onDeleteRoom: (roomId) async {
+              await ctrl.deleteRoom(roomId);
+            },
+            onRenameRoom: (roomId, title) async {
+              await ctrl.renameRoom(roomId: roomId, title: title);
+            },
+          );
+        });
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -68,6 +101,23 @@ class _ChatViewState extends State<ChatView>
           ),
           onPressed: () => Navigator.pop(context),
         ),
+        title: Obx(() {
+          return Text(
+            ctrl.currentRoomTitle,
+            style: TextStyle(
+              color: const Color(0xff45557B),
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+            ),
+          );
+        }),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.history_rounded,
+                color: const Color(0xff45557B), size: 22.sp),
+            onPressed: () => _showHistorySheet(context),
+          ),
+        ],
       ),
       body: Stack(
         children: [

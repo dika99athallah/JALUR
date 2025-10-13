@@ -113,7 +113,7 @@ class RouteController extends GetxController {
     if (!GoogleMapsConfig.isValid()) {
       _showUserMessage(
         'API Google Maps tidak ditemukan',
-        'Pastikan GOOGLE_MAPS_API_KEY sudah dikonfigurasi pada berkas .env.',
+        'Pastikan GOOGLE_MAPS_SERVICES_KEY sudah dikonfigurasi pada berkas .env (atau sediakan GOOGLE_MAPS_API_KEY sebagai cadangan).',
       );
     }
     _resetPlacesSession();
@@ -300,7 +300,7 @@ class RouteController extends GetxController {
         searchSuggestions.clear();
         _showUserMessage(
           'API Google Maps tidak tersedia',
-          'Pastikan GOOGLE_MAPS_API_KEY sudah dikonfigurasi pada aplikasi.',
+          'Pastikan GOOGLE_MAPS_SERVICES_KEY sudah dikonfigurasi pada aplikasi.',
         );
         return;
       }

@@ -42,16 +42,19 @@ class _NewsCarouselState extends State<NewsCarousel> {
   void _startAutoPlay() {
     _autoPlayTimer?.cancel();
     _autoPlayTimer = Timer.periodic(widget.autoPlayInterval, (_) {
-      final itemCount = widget.controller.newsList.length;
-      if (itemCount == 0) return;
-      final next = (_current + 1) % itemCount;
-      if (mounted) {
-        _pageController.animateToPage(
-          next,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
+      final items = widget.controller.newsList;
+      final itemCount = items.length > 15 ? 15 : items.length;
+      if (itemCount <= 1 || !_pageController.hasClients || !mounted) {
+        return;
       }
+
+      final currentPage = _pageController.page?.floor() ?? _current;
+      final nextPage = currentPage + 1;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
     });
   }
 
@@ -288,24 +291,29 @@ class _NewsCarouselState extends State<NewsCarousel> {
             height: widget.height.h,
             child: PageView.builder(
               controller: _pageController,
-              itemCount: showCount,
+              itemCount: showCount == 0 ? 0 : null,
               onPageChanged: (idx) {
+                if (showCount == 0) return;
+                final normalizedIndex = idx % showCount;
                 setState(() {
-                  _current = idx;
-                  widget.controller.setNewsIndex(idx);
+                  _current = normalizedIndex;
+                  widget.controller.setNewsIndex(normalizedIndex);
                 });
                 _startAutoPlay();
               },
               itemBuilder: (context, index) {
+                if (showCount == 0) {
+                  return const SizedBox.shrink();
+                }
+                final item = items[index % showCount];
                 final page =
                     (_pageController.hasClients && _pageController.page != null)
                         ? _pageController.page!
-                        : _current.toDouble();
-                final offset = (page - index);
-                final clippedOffset = offset.clamp(-1.0, 1.0);
+                        : index.toDouble();
+                final offset = (page - index).clamp(-1.0, 1.0);
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-                  child: _buildCard(context, items[index], clippedOffset),
+                  child: _buildCard(context, item, offset),
                 );
               },
             ),
@@ -318,7 +326,7 @@ class _NewsCarouselState extends State<NewsCarousel> {
                 Expanded(child: _buildIndicator(showCount)),
                 SizedBox(width: 8.w),
                 Text('$showCount berita',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.lexend(
                         fontSize: 12.sp, color: Colors.grey[700])),
               ],
             ),

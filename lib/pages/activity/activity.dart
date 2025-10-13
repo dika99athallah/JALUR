@@ -148,8 +148,9 @@ class _ActivityPageState extends State<ActivityPage> {
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.white,
           systemOverlayStyle: SystemUiOverlayStyle.dark,
+          centerTitle: true,
           title: Text('Aktivitas',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.lexend(
                   fontSize: 20.sp,
                   color: Colors.black,
                   fontWeight: FontWeight.bold)),

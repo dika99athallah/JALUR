@@ -3,7 +3,7 @@
 <plist version="1.0">
 	<dict>
 		<key>GMSApiKey</key>
-		<string>$(GOOGLE_MAPS_API_KEY)</string>
+		<string>$(GOOGLE_MAPS_IOS_SDK_KEY)</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>App membutuhkan lokasi untuk fitur tertentu.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
@@ -55,15 +55,10 @@
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>UISupportedInterfaceOrientations~ipad</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
-			<string>UIInterfaceOrientationPortraitUpsideDown</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>

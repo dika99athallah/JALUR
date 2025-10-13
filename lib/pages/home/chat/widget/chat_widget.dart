@@ -377,10 +377,15 @@ class ChatInput extends StatelessWidget {
             ),
             child: TextField(
               controller: controller.textController,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.send,
+              minLines: 1,
+              maxLines: 5,
+              onSubmitted: (_) => controller.sendFromInput(),
               style: GoogleFonts.inter(
                   fontSize: screenWidth * 0.04, color: const Color(0xFF435482)),
               decoration: InputDecoration(
-                hintText: "Type your message...",
+                hintText: "Ketikan pesan anda...",
                 hintStyle: GoogleFonts.inter(
                     fontSize: screenWidth * 0.04,
                     color: const Color(0xFF435482)),

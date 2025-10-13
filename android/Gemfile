@@ -1,0 +1,11 @@
+source "https://rubygems.org"
+
+gem "fastlane"
+
+# Ruby 3.4+ stops bundling some stdlib gems by default; add them explicitly so
+# HighLine/Fastlane can require them without blowing up.
+gem "abbrev", require: false
+gem "ostruct", require: false
+
+plugins_path = File.join(__dir__, "fastlane", "Pluginfile")
+eval_gemfile(plugins_path) if File.exist?(plugins_path)

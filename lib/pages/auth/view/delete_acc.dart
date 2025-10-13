@@ -37,7 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         backgroundColor: const Color(0xff45557B),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           color: Colors.white,
           onPressed: () {
             Navigator.pop(context);

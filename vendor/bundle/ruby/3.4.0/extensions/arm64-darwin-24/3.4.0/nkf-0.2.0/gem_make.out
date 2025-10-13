@@ -1,0 +1,18 @@
+current directory: /Users/aliffikri/JIR/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+/opt/homebrew/opt/ruby/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/aliffikri/JIR/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20251013-46789-eg5us9 sitelibdir\=./.gem.20251013-46789-eg5us9 clean
+
+current directory: /Users/aliffikri/JIR/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20251013-46789-eg5us9 sitelibdir\=./.gem.20251013-46789-eg5us9
+compiling nkf.c
+linking shared-object nkf.bundle
+
+current directory: /Users/aliffikri/JIR/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20251013-46789-eg5us9 sitelibdir\=./.gem.20251013-46789-eg5us9 install
+/usr/bin/install -c -m 0755 nkf.bundle ./.gem.20251013-46789-eg5us9
+
+current directory: /Users/aliffikri/JIR/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20251013-46789-eg5us9 sitelibdir\=./.gem.20251013-46789-eg5us9 clean
