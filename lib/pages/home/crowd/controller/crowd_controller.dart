@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -30,6 +31,29 @@ class CrowdController extends GetxController {
     super.onInit();
     fetchData();
     Timer.periodic(const Duration(seconds: 10), (timer) => fetchData());
+
+    generateDummyData();
+    _dummyTimer = Timer.periodic(const Duration(seconds: 7), (_) {
+      generateDummyData();
+    });
+  }
+
+  Timer? _dummyTimer;
+  final Random _rand = Random();
+
+  void generateDummyData() {
+    final Map<String, dynamic> newData = {};
+    locations.forEach((name, latlng) {
+      final int value = (_rand.nextDouble() * 300).round();
+      newData[name] = {'predicted_count': value};
+    });
+    liveData.value = newData;
+    errorMessage.value = '';
+  }
+
+  Future<void> refreshDummy() async {
+    generateDummyData();
+    await Future.delayed(const Duration(milliseconds: 250));
   }
 
   Future<void> fetchData() async {
@@ -49,6 +73,12 @@ class CrowdController extends GetxController {
     } finally {
       isLoading(false);
     }
+  }
+
+  @override
+  void onClose() {
+    _dummyTimer?.cancel();
+    super.onClose();
   }
 
   String getLevel(int count) {

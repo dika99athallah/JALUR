@@ -16,7 +16,10 @@ class CrowdMonitoringPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
-      body: Obx(() => _buildBody()),
+      body: Obx(() => RefreshIndicator(
+            onRefresh: controller.refreshDummy,
+            child: _buildBody(),
+          )),
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_compass/flutter_compass.dart';
+import 'package:JIR/services/notification_service/tts_service.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:JIR/helper/google_maps_config.dart';
 import 'package:JIR/services/navigation_service/navigation_foreground_service.dart';
@@ -121,6 +122,10 @@ class RouteController extends GetxController {
     startPoint = userLocation.value;
     _startLocationUpdates();
     _startCompassUpdates();
+
+    try {
+      await TtsService.I.init();
+    } catch (_) {}
   }
 
   void selectVehicle(String vehicleKey) {
@@ -219,6 +224,22 @@ class RouteController extends GetxController {
     }
 
     _syncForegroundNotification(forceStart: true);
+
+    try {
+      final labelText = label;
+      final distanceText = formatDistance(totalRouteDistance.value);
+      final durationText = formatDuration(totalRouteDuration.value);
+      final firstInstr = nextInstruction.value.isNotEmpty
+          ? _stripHtml(nextInstruction.value)
+          : '';
+      final parts = <String>[];
+      parts.add('Rute dipilih: $labelText.');
+      parts.add('Estimasi jarak $distanceText.');
+      parts.add('Estimasi waktu $durationText.');
+      if (firstInstr.isNotEmpty) parts.add('Instruksi pertama: $firstInstr.');
+      final speech = parts.join(' ');
+      unawaited(TtsService.I.speak(speech));
+    } catch (_) {}
 
     update();
   }
@@ -816,6 +837,9 @@ class RouteController extends GetxController {
       _foregroundServiceActive = false;
       _lastForegroundUpdate = null;
     }
+    try {
+      unawaited(TtsService.I.stop());
+    } catch (_) {}
     super.onClose();
   }
 
