@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:JIR/pages/home/weather/widget/diagonal_container.dart';
 import 'package:get/get.dart';
+import 'package:JIR/utils/greeting.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:JIR/pages/home/weather/widget/weather_helper.dart';
 
@@ -58,13 +59,6 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
 class WeatherPage extends StatelessWidget {
   WeatherPage({super.key});
   final WeatherController controller = Get.put(WeatherController());
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour >= 4 && hour < 10) return 'Selamat Pagi,';
-    if (hour >= 10 && hour < 15) return 'Selamat Siang,';
-    if (hour >= 15 && hour < 18) return 'Selamat Sore,';
-    return 'Selamat Malam,';
-  }
 
   String _hourLabelFor(DateTime dt) {
     final now = DateTime.now();
@@ -375,7 +369,7 @@ class WeatherPage extends StatelessWidget {
         if (controller.error.isNotEmpty) {
           return Center(child: Text(controller.error.value));
         }
-        final greeting = _greeting();
+        final greeting = greetingForNow();
         final username = controller.username.value.isNotEmpty
             ? controller.username.value
             : 'Pengguna';

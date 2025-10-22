@@ -16,6 +16,7 @@ import 'package:JIR/pages/home/main/widget/news_carousel.dart';
 import 'package:JIR/pages/home/main/widget/weather_card.dart';
 import 'package:JIR/pages/notifications/controller/notification_controller.dart';
 import 'package:JIR/pages/home/map/controller/route_controller.dart';
+import 'package:JIR/utils/greeting.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -161,18 +162,6 @@ class _HomePageState extends State<HomePage> {
         snackPosition: SnackPosition.BOTTOM);
   }
 
-  String _greetingForNow() {
-    final hour = DateTime.now().hour;
-    if (hour >= 4 && hour < 10) {
-      return 'Selamat Pagi,';
-    } else if (hour >= 10 && hour < 15) {
-      return 'Selamat Siang,';
-    } else if (hour >= 15 && hour < 18) {
-      return 'Selamat Sore,';
-    } else {
-      return 'Selamat Malam,';
-    }
-  }
 
   @override
   void dispose() {
@@ -262,7 +251,7 @@ class _HomePageState extends State<HomePage> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          _greetingForNow(),
+                                          greetingForNow(),
                                           style: GoogleFonts.lexend(
                                             fontSize: 14.sp,
                                             fontWeight: FontWeight.w700,
@@ -363,9 +352,13 @@ class _HomePageState extends State<HomePage> {
                           top: headerHeight - overlap,
                           left: 0,
                           right: 0,
-                          child: SizedBox(
-                            height: weatherCardHeight,
-                            child: WeatherCard(controller: controller),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: SizedBox(
+                              height: weatherCardHeight,
+                              width: MediaQuery.of(context).size.width - 5.w,
+                              child: WeatherCard(controller: controller),
+                            ),
                           ),
                         ),
                       ],
