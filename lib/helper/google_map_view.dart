@@ -589,9 +589,15 @@ class _JirMapViewState extends State<JirMapView> with TickerProviderStateMixin {
       final polylineColor = config.opacity != null
           ? config.color.withOpacity(config.opacity!.clamp(0, 1))
           : config.color;
+
+      final points = config.points;
+      final simplified = points.length > 300
+          ? _douglasPeucker(points, epsilonMeters: 8.0)
+          : points;
+
       return Polyline(
         polylineId: PolylineId(config.id),
-        points: config.points.map(_toLatLng).toList(growable: false),
+        points: simplified.map(_toLatLng).toList(growable: false),
         width: config.width.round().clamp(1, 12),
         color: polylineColor,
         patterns: config.pattern ?? const <PatternItem>[],
@@ -604,6 +610,55 @@ class _JirMapViewState extends State<JirMapView> with TickerProviderStateMixin {
     }).toSet();
   }
 
+  List<ll.LatLng> _douglasPeucker(List<ll.LatLng> points,
+      {double epsilonMeters = 5.0}) {
+    if (points.length < 3) return points;
+
+    final epsDeg = epsilonMeters / 111320.0;
+
+    List<int> keep = [0, points.length - 1];
+
+    void recurse(int first, int last) {
+      if (last <= first + 1) return;
+      double maxDist = 0.0;
+      int index = -1;
+      final a = points[first];
+      final b = points[last];
+      for (int i = first + 1; i < last; i++) {
+        final d = _pointLineDistance(points[i], a, b);
+        if (d > maxDist) {
+          index = i;
+          maxDist = d;
+        }
+      }
+      if (maxDist > epsDeg) {
+        keep.add(index);
+        recurse(first, index);
+        recurse(index, last);
+      }
+    }
+
+    recurse(0, points.length - 1);
+    keep.sort();
+    return keep.map((i) => points[i]).toList(growable: false);
+  }
+
+  double _pointLineDistance(ll.LatLng p, ll.LatLng a, ll.LatLng b) {
+    final x0 = p.longitude;
+    final y0 = p.latitude;
+    final x1 = a.longitude;
+    final y1 = a.latitude;
+    final x2 = b.longitude;
+    final y2 = b.latitude;
+
+    final num = ((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1).abs();
+    final den = math.sqrt(math.pow(y2 - y1, 2) + math.pow(x2 - x1, 2));
+    if (den == 0) {
+      return math.sqrt(math.pow(x0 - x1, 2) + math.pow(y0 - y1, 2));
+    }
+    return num / den;
+  }
+
   Set<Circle> _buildRadarCircles() {
     final data = widget.markerData ?? const [];
     if (data.isEmpty || _radarTimer == null) {
@@ -614,7 +669,7 @@ class _JirMapViewState extends State<JirMapView> with TickerProviderStateMixin {
     final baseMarkers = widget.markers ?? const [];
     final phase = _radarPhases[_radarTick];
     for (var i = 0; i < data.length && i < baseMarkers.length; i++) {
-      final markerData = data[i];
+      final markerData = data[i]; 
       if (_markerTypeOf(markerData) != _MarkerType.flood) continue;
       final color = _resolveMarkerColor(markerData);
       final latLng = baseMarkers[i];

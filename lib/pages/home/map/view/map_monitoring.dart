@@ -677,7 +677,7 @@ class MapMonitoring extends StatelessWidget {
                     ? null
                     : () {
                         Get.back();
-                        Get.to(() => CCTVWebView(url: url));
+                        Get.to(() => CCTVWebView(url: url, title: name));
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff45557B),

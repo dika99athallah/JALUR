@@ -112,7 +112,8 @@ class _CCTVPageState extends State<CCTVPage> {
                         final location = _filteredLocations[index];
                         return _CctvCard(
                           location: location,
-                          onTap: () => _navigateToCCTV(context, location.url),
+                          onTap: () => _navigateToCCTV(
+                              context, location.name, location.url),
                         );
                       },
                     ),
@@ -305,11 +306,11 @@ class _CCTVPageState extends State<CCTVPage> {
     });
   }
 
-  void _navigateToCCTV(BuildContext context, String url) {
+  void _navigateToCCTV(BuildContext context, String name, String url) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CCTVWebView(url: url),
+        builder: (context) => CCTVWebView(url: url, title: name),
       ),
     );
   }
@@ -318,7 +319,7 @@ class _CCTVPageState extends State<CCTVPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => CCTVWebView(url: url),
+        builder: (_) => CCTVWebView(url: url, title: name),
       ),
     );
   }

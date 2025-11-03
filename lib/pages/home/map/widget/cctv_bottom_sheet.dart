@@ -109,7 +109,8 @@ class CctvBottomSheet extends StatelessWidget {
                     ),
                     onTap: () {
                       Get.back();
-                      Get.to(() => CCTVWebView(url: location.url));
+                      Get.to(() =>
+                          CCTVWebView(url: location.url, title: location.name));
                     },
                   );
                 },
