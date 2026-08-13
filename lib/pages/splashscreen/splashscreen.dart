@@ -71,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen>
             opacity: firstLogoOpacity,
             child: Center(
               child: Image.asset(
-                'assets/images/jir_logo7.png',
+                'assets/images/navika_logo.png',
                 width: 200.w,
                 height: 200.h,
               ),
@@ -114,7 +114,7 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 Center(
                   child: Image.asset(
-                    'assets/images/jir_logo2.png',
+                    'assets/images/navika_logo.png',
                     width: 200.w,
                   ),
                 ),
